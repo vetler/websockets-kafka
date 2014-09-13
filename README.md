@@ -5,7 +5,7 @@ An experiment to let web pages access Apache Kafka through Javascript and WebSoc
 
 ## Server
 
-To start the server, run the `main` method in the `WebSocketKafkaServer` object. You can do this by
+To start the server, run the `main` method in the `KafkaWebSocketServer` object. You can do this by
 running SBT like this:
 
 ```
@@ -15,7 +15,7 @@ sbt "project server" run
 
 ## Client
 
-To start the client, run the `main` method in the `WebSocketKafkaClientServer`. You can
+To start the client, run the `main` method in the `ConsumerClientServer`. You can
 do this by running SBT like this:
 
 ```

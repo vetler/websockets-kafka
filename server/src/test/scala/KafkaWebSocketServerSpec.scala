@@ -8,7 +8,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 import scala.collection.JavaConverters._
 
-class WebSocketKafkaServerSpec extends FlatSpec with Matchers with EasyMockSugar {
+class KafkaWebSocketServerSpec extends FlatSpec with Matchers with EasyMockSugar {
 
   "Receiving a message with a group id and topic" should "create a Kafka consumer for the connection" in {
     val msgPack = new MessagePack
@@ -21,7 +21,7 @@ class WebSocketKafkaServerSpec extends FlatSpec with Matchers with EasyMockSugar
     val message = msgPack.write(map.asJava)
     val conn = mock[WebSocket]
 
-    val server = new WebSocketKafkaServer(new InetSocketAddress(9999))
+    val server = new KafkaWebSocketServer(new InetSocketAddress(9999))
     server.consumers.isEmpty should be (true)
 
     server.onMessage(conn, ByteBuffer.wrap(message))

@@ -14,9 +14,9 @@ import org.msgpack.`type`.RawValue
  *
  * @param port The port the server should listen to
  */
-class WebSocketKafkaServer(port: InetSocketAddress) extends WebSocketServer(port) with LazyLogging {
+class KafkaWebSocketServer(port: InetSocketAddress) extends WebSocketServer(port) with LazyLogging {
 
-  import WebSocketKafkaServer.pool
+  import KafkaWebSocketServer.pool
 
   var consumers = Map[WebSocket, ConsumeBridge]()
 
@@ -61,11 +61,11 @@ class WebSocketKafkaServer(port: InetSocketAddress) extends WebSocketServer(port
   }
 }
 
-object WebSocketKafkaServer {
+object KafkaWebSocketServer {
   val pool: ExecutorService = Executors.newCachedThreadPool()
 
   def main(args: Array[String]) {
     WebSocketImpl.DEBUG = true;
-    new WebSocketKafkaServer(new InetSocketAddress(9003)).start();
+    new KafkaWebSocketServer(new InetSocketAddress(9003)).start();
   }
 }

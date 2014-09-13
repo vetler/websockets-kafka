@@ -1,6 +1,6 @@
 import net.roeim.minihttpserver.MiniHttpServer
 
-object WebSocketKafkaClientServer extends MiniHttpServer {
+object ConsumerClientServer extends MiniHttpServer {
   get("/") { exchange =>
     exchange.getResponseHeaders.add("Content-type", "text/html")
 
@@ -31,6 +31,6 @@ object WebSocketKafkaClientServer extends MiniHttpServer {
   }
 
   def main(args: Array[String]) {
-    WebSocketKafkaClientServer.start()
+    ConsumerClientServer.start()
   }
 }
