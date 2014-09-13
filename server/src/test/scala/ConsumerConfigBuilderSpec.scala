@@ -7,7 +7,7 @@ class ConsumerConfigBuilderSpec extends FlatSpec with Matchers {
     builder += (("group.id", "test-group-id"))
 
     a[IllegalArgumentException] should be thrownBy {
-      builder.result
+      builder.build
     }
   }
 
@@ -15,6 +15,6 @@ class ConsumerConfigBuilderSpec extends FlatSpec with Matchers {
     val builder = new ConsumerConfigBuilder
     builder += (("group.id", "some-id"))
     builder += (("zookeeper.connect", "some-zookeeker"))
-    builder.result should not be (null)
+    builder.build should not be (null)
   }
 }

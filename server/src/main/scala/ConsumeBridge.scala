@@ -2,7 +2,8 @@ import java.util.Properties
 import java.util.concurrent.atomic.AtomicReference
 
 import com.typesafe.scalalogging.slf4j.LazyLogging
-import kafka.consumer.ConsumerConfig
+import kafka.consumer.{ConsumerConfig, KafkaStream}
+import kafka.javaapi.consumer.ConsumerConnector
 import kafka.message.MessageAndMetadata
 import org.java_websocket.WebSocket
 
@@ -25,9 +26,13 @@ class ConsumeBridge(groupId: String, topic: String, connection: WebSocket) exten
     builder +=("zookeeper.session.timeout.ms", "400")
     builder +=("zookeeper.sync.time.ms", "200")
     builder +=("auto.commit.interval.ms", "1000")
-    builder.result
+    builder.build
   }
-
+  
+  lazy val connector = {
+    kafka.consumer.Consumer.createJavaConsumerConnector(consumerConfig)
+  }
+  
   var keepProcessing = new AtomicReference(true)
 
   /**
@@ -39,12 +44,16 @@ class ConsumeBridge(groupId: String, topic: String, connection: WebSocket) exten
   }
 
   override def run(): Unit = {
-    val consumerConnector = kafka.consumer.Consumer.createJavaConsumerConnector(consumerConfig)
-    val topicThreads = Map(topic -> Integer.valueOf(1))
-    val stream = consumerConnector.createMessageStreams(topicThreads.asJava).get(topic).get(0)
+    processStream(createStream(connector))
+    connector.shutdown()
+  }
 
-    stream.iterator().toStream.takeWhile(_ => keepProcessing.get).foreach(processEvent)
-    consumerConnector.shutdown()
+  def createStream(consumerConnector: ConsumerConnector) = {
+    consumerConnector.createMessageStreams(Map(topic -> Integer.valueOf(1)).asJava).get(topic).get(0)
+  }
+
+  def processStream(kafkaStream: KafkaStream[Array[Byte], Array[Byte]]) {
+    kafkaStream.iterator().toStream.takeWhile(_ => keepProcessing.get).foreach(processEvent)
   }
 
   def processEvent(event: MessageAndMetadata[Array[Byte], Array[Byte]]) {
@@ -54,15 +63,13 @@ class ConsumeBridge(groupId: String, topic: String, connection: WebSocket) exten
 
 }
 
-class ConsumerConfigBuilder /* extends mutable.Builder[(String, String), ConsumerConfig]*/ {
+class ConsumerConfigBuilder {
   val properties = new Properties
 
-  /*override */ def +=(elem: (String, String)): ConsumerConfigBuilder = {
+  def +=(elem: (String, String)): ConsumerConfigBuilder = {
     (properties.put _).tupled(elem)
     this
   }
 
-  /*override */ def result(): ConsumerConfig = new ConsumerConfig(properties)
-
-  /*override */ def clear() = properties.clear()
+  def build(): ConsumerConfig = new ConsumerConfig(properties)
 }
