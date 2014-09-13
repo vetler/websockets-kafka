@@ -3,6 +3,10 @@ websockets-kafka
 
 An experiment to let web pages access Apache Kafka through Javascript and WebSockets.
 
+## Apache Kafka
+
+Start Apache Kafka, as described in the [quickstart](http://kafka.apache.org/documentation.html#quickstart). The Zookeeper configuration in the server is not yet configurable, so it is important that it is running on the default port.
+
 ## Server
 
 To start the server, run the `main` method in the `KafkaWebSocketServer` object. You can do this by
