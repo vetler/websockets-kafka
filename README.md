@@ -26,7 +26,7 @@ do this by running SBT like this:
 sbt "project client" run
 ```
 
-Point your browser to http://localhost:8080. There is not really a UI yet, but check the Javascript console, and messages will appear as they are received.
+Point your browser to [localhost:8080](http://localhost:8080). There is not really a UI yet, but check the Javascript console, and messages will appear as they are received.
 
 ## Sending messages
 
