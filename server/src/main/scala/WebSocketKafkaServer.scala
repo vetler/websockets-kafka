@@ -18,8 +18,7 @@ class WebSocketKafkaServer(port: InetSocketAddress) extends WebSocketServer(port
 
   import WebSocketKafkaServer.pool
 
-  var consumers = Map[WebSocket, ConsumerWebSocketBridge]()
-
+  var consumers = Map[WebSocket, ConsumeBridge]()
 
   override def onOpen(conn: WebSocket, handshake: ClientHandshake) {
     logger.debug(s"New connection established: ${conn.getRemoteSocketAddress}")
@@ -34,7 +33,7 @@ class WebSocketKafkaServer(port: InetSocketAddress) extends WebSocketServer(port
   def initialize(socket: WebSocket, message: MessagePackMap): Unit = {
     val groupId: String = message.get("groupId")
     val topic: String = message.get("topic")
-    val webSocketConsumer = new ConsumerWebSocketBridge(groupId, topic, socket)
+    val webSocketConsumer = new ConsumeBridge(groupId, topic, socket)
     pool.execute(webSocketConsumer)
     consumers = consumers + (socket -> webSocketConsumer)
   }
@@ -55,7 +54,7 @@ class WebSocketKafkaServer(port: InetSocketAddress) extends WebSocketServer(port
   override def onClose(conn: WebSocket, code: Int, reason: String, remote: Boolean): Unit = {
     logger.debug(s"Connection closed: ${conn.getRemoteSocketAddress}")
     consumers.get(conn) match {
-      case Some(consumer: ConsumerWebSocketBridge) => consumer.interrupt
+      case Some(consumer: ConsumeBridge) => consumer.stopProcessing
       case None => throw new IllegalStateException(s"No consumer bridge found for connection $conn")
     }
     consumers = consumers - conn

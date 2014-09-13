@@ -8,7 +8,15 @@ import org.java_websocket.WebSocket
 
 import scala.collection.JavaConverters._
 
-class ConsumerWebSocketBridge(groupId: String, topic: String, connection: WebSocket) extends Runnable with LazyLogging {
+/**
+ * Starts a Kafka consumer connector and listens to messages on a specific topic, with a given group ID. Every time a message is received,
+ * it is sent to the websocket.
+ *
+ * @param groupId The consumer group id
+ * @param topic The topic that should be listened to
+ * @param connection The websocket connection
+ */
+class ConsumeBridge(groupId: String, topic: String, connection: WebSocket) extends Runnable with LazyLogging {
 
   lazy val consumerConfig = {
     val builder = new ConsumerConfigBuilder
@@ -22,7 +30,11 @@ class ConsumerWebSocketBridge(groupId: String, topic: String, connection: WebSoc
 
   var keepProcessing = new AtomicReference(true)
 
-  def interrupt {
+  /**
+   * We are unable to interrupt the thread immediately, but this will make it stop when it receives a message.
+   * @todo Improve this somehow?
+   */
+  def stopProcessing {
     keepProcessing.set(false)
   }
 
@@ -31,19 +43,14 @@ class ConsumerWebSocketBridge(groupId: String, topic: String, connection: WebSoc
     val topicThreads = Map(topic -> Integer.valueOf(1))
     val stream = consumerConnector.createMessageStreams(topicThreads.asJava).get(topic).get(0)
 
-    stream.iterator().toStream.takeWhile(foo).foreach(processEvent)
+    stream.iterator().toStream.takeWhile(_ => keepProcessing.get).foreach(processEvent)
     consumerConnector.shutdown()
-  }
-
-  def foo(event: MessageAndMetadata[Array[Byte], Array[Byte]]) = {
-    keepProcessing.get()
   }
 
   def processEvent(event: MessageAndMetadata[Array[Byte], Array[Byte]]) {
     logger.debug(s"Received message: ${new String(event.message())}")
     connection.send(new String(event.message()))
   }
-
 
 }
 
