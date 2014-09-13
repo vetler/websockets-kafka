@@ -2,12 +2,12 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.util.concurrent.{ExecutorService, Executors}
 
+import MsgPack.valueToString
 import com.typesafe.scalalogging.slf4j.LazyLogging
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 import org.java_websocket.{WebSocket, WebSocketImpl}
 import org.msgpack.`type`.RawValue
-
 
 /**
  * Websocket server for redirecting Apache Kafka events to websocket clients.
@@ -24,22 +24,14 @@ class KafkaWebSocketServer(port: InetSocketAddress) extends WebSocketServer(port
     logger.debug(s"New connection established: ${conn.getRemoteSocketAddress}")
   }
 
-  override def onError(conn: WebSocket, ex: Exception) {
-    logger.debug(s"Error: ${ex.getMessage}")
-  }
-
-  implicit def valueToString(v: RawValue) = v.getString
-
-  def initialize(socket: WebSocket, message: MessagePackMap): Unit = {
-    val groupId: String = message.get("groupId")
-    val topic: String = message.get("topic")
-    val webSocketConsumer = new ConsumeBridge(groupId, topic, socket)
+  def initialize(socket: WebSocket, message: MsgPack): Unit = {
+    val webSocketConsumer = new ConsumeBridge(message.get("groupId"), message.get("topic"), socket)
     pool.execute(webSocketConsumer)
     consumers = consumers + (socket -> webSocketConsumer)
   }
 
   override def onMessage(conn: WebSocket, bytes: ByteBuffer): Unit = {
-    val message = new MessagePackMap(bytes)
+    val message = new MsgPack(bytes)
     logger.debug(s"Message received: ${message}")
 
     message.get("command") match {
@@ -51,12 +43,13 @@ class KafkaWebSocketServer(port: InetSocketAddress) extends WebSocketServer(port
     logger.debug(s"String message received: $message")
   }
 
+  override def onError(conn: WebSocket, ex: Exception) {
+    logger.debug(s"Error: ${ex.getMessage}")
+  }
+
   override def onClose(conn: WebSocket, code: Int, reason: String, remote: Boolean): Unit = {
     logger.debug(s"Connection closed: ${conn.getRemoteSocketAddress}")
-    consumers.get(conn) match {
-      case Some(consumer: ConsumeBridge) => consumer.stopProcessing
-      case None => throw new IllegalStateException(s"No consumer bridge found for connection $conn")
-    }
+    consumers.get(conn).foreach(_.stopProcessing)
     consumers = consumers - conn
   }
 }

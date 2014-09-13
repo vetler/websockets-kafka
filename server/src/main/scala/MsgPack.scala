@@ -4,17 +4,20 @@ import org.msgpack.MessagePack
 import org.msgpack.`type`.{RawValue, ValueFactory}
 
 
-class MessagePackMap(buffer: ByteBuffer) {
+class MsgPack(buffer: ByteBuffer) {
 
-  import MessagePackMap.msgPack
+  import MsgPack.msgPack
 
   val map = msgPack.read(buffer.array()).asMapValue()
+
 
   def get(key: String): RawValue = {
     map.get(ValueFactory.createRawValue(key)).asRawValue()
   }
 }
 
-object MessagePackMap {
+object MsgPack {
+  implicit def valueToString(v: RawValue) = v.getString
+
   val msgPack = new MessagePack
 }
