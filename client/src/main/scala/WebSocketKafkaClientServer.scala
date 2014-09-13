@@ -5,33 +5,29 @@ object WebSocketKafkaClientServer extends MiniHttpServer {
     exchange.getResponseHeaders.add("Content-type", "text/html")
 
     val page = <html>
-      <script>
-        <![CDATA[
-        var connection = new WebSocket('ws://localhost:9003/');
-        connection.onopen = function(){
-            console.log('Connection open!');
-            connection.send('Hey server, whats up?');
-        }
-
-        connection.onclose = function(){
-            console.log('Connection closed');
-        }
-
-        connection.onmessage = function(e){
-            var server_message = e.data;
-            console.log(server_message);
-        }
-
-        connection.onerror = function(error){
-            console.log('Error detected: ' + error);
-        }
-
-    ]]>
-      </script>
-      <body></body>
+      <head>
+        <script src="http://fb.me/react-0.11.1.js"></script>
+        <script src="scripts/msgpack.js"></script>
+        <script src="scripts/main.js"></script>
+      </head>
+      <body><ol id="messages"></ol></body>
     </html>
 
     page.toString
+  }
+
+  get("/scripts/msgpack.js") {
+    exchange =>
+      readResource("scripts/msgpack.js")
+  }
+
+  get("/scripts/main.js") {
+    exchange =>
+      readResource("scripts/main.js")
+  }
+
+  def readResource(resource: String) = {
+    scala.io.Source.fromInputStream(getClass.getResourceAsStream(resource)).mkString
   }
 
   def main(args: Array[String]) {

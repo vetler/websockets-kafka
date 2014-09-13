@@ -8,13 +8,26 @@ An experiment to let web pages access Apache Kafka through Javascript and WebSoc
 To start the server, run the `main` method in the `WebSocketKafkaServer` object. You can do this by
 running SBT like this:
 
-> sbt "project server" run
+```
+sbt "project server" run
+```
+ 
 
 ## Client
 
 To start the client, run the `main` method in the `WebSocketKafkaClientServer`. You can
 do this by running SBT like this:
 
->  sbt "project client" run
+```
+sbt "project client" run
+```
 
+## Sending messages
 
+To send messages, just use `kafka-console-producer.sh`:
+
+```
+bin/kafka-console-producer.sh --broker-list localhost:9092 --topic testing-topic
+```
+
+Each line you type will be echoed in the browser.
