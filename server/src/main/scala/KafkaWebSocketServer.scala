@@ -1,6 +1,5 @@
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
-import java.util.concurrent.{ExecutorService, Executors}
 
 import MsgPack.valueToString
 import com.typesafe.scalalogging.slf4j.LazyLogging
@@ -9,14 +8,15 @@ import org.java_websocket.server.WebSocketServer
 import org.java_websocket.{WebSocket, WebSocketImpl}
 import org.msgpack.`type`.RawValue
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.future
+
 /**
  * Websocket server for redirecting Apache Kafka events to websocket clients.
  *
  * @param port The port the server should listen to
  */
 class KafkaWebSocketServer(port: InetSocketAddress) extends WebSocketServer(port) with LazyLogging {
-
-  import KafkaWebSocketServer.pool
 
   var consumers = Map[WebSocket, ConsumeBridge]()
 
@@ -26,7 +26,9 @@ class KafkaWebSocketServer(port: InetSocketAddress) extends WebSocketServer(port
 
   def initialize(socket: WebSocket, message: MsgPack): Unit = {
     val webSocketConsumer = new ConsumeBridge(message.get("groupId"), message.get("topic"), socket)
-    pool.execute(webSocketConsumer)
+    future {
+      webSocketConsumer.run
+    }
     consumers = consumers + (socket -> webSocketConsumer)
   }
 
@@ -55,7 +57,6 @@ class KafkaWebSocketServer(port: InetSocketAddress) extends WebSocketServer(port
 }
 
 object KafkaWebSocketServer {
-  val pool: ExecutorService = Executors.newCachedThreadPool()
 
   def main(args: Array[String]) {
     WebSocketImpl.DEBUG = true;

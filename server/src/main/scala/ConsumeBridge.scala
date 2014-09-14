@@ -8,6 +8,7 @@ import kafka.message.MessageAndMetadata
 import org.java_websocket.WebSocket
 
 import scala.collection.JavaConverters._
+import scala.concurrent.blocking
 
 /**
  * Starts a Kafka consumer connector and listens to messages on a specific topic, with a given group ID. Every time a message is received,
@@ -28,11 +29,11 @@ class ConsumeBridge(groupId: String, topic: String, connection: WebSocket) exten
     builder +=("auto.commit.interval.ms", "1000")
     builder.build
   }
-  
+
   lazy val connector = {
     kafka.consumer.Consumer.createJavaConsumerConnector(consumerConfig)
   }
-  
+
   var keepProcessing = new AtomicReference(true)
 
   /**
@@ -53,7 +54,9 @@ class ConsumeBridge(groupId: String, topic: String, connection: WebSocket) exten
   }
 
   def processStream(kafkaStream: KafkaStream[Array[Byte], Array[Byte]]) {
-    kafkaStream.iterator().toStream.takeWhile(_ => keepProcessing.get).foreach(processEvent)
+    blocking {
+      kafkaStream.iterator().toStream.takeWhile(_ => keepProcessing.get).foreach(processEvent)
+    }
   }
 
   def processEvent(event: MessageAndMetadata[Array[Byte], Array[Byte]]) {
