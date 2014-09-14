@@ -3,28 +3,25 @@ import java.nio.ByteBuffer
 import org.msgpack.MessagePack
 import org.msgpack.`type`.{ArrayValue, RawValue, Value, ValueFactory}
 
-
 class MsgPack(buffer: ByteBuffer) {
 
-  import MsgPack.msgPack
+    import MsgPack.msgPack
 
-  val map = msgPack.read(buffer.array()).asMapValue()
+    val map = msgPack.read(buffer.array()).asMapValue()
 
-
-  def get(key: String): Value = {
-    map.get(ValueFactory.createRawValue(key))
-  }
+    def get(key: String): Value = {
+        map.get(ValueFactory.createRawValue(key))
+    }
 }
 
 object MsgPack {
-  implicit def valueToString(v: Value) = v match {
-    case raw: RawValue => raw.getString
-  }
+    implicit def valueToString(v: Value) = v match {
+        case raw: RawValue => raw.getString
+    }
 
-  implicit def valueToList(v: Value): List[String] = v match {
-    case array: ArrayValue => array.getElementArray.map(valueToString).toList
-  }
+    implicit def valueToList(v: Value): List[String] = v match {
+        case array: ArrayValue => array.getElementArray.map(valueToString).toList
+    }
 
-
-  val msgPack = new MessagePack
+    val msgPack = new MessagePack
 }

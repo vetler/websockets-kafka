@@ -1,7 +1,13 @@
 ( // Module boilerplate to support browser globals and browserify and AMD.
-        typeof define === "function" ? function (m) { define("msgpack-js", m); } :
-        typeof exports === "object" ? function (m) { module.exports = m(); } :
-    function(m){ this.msgpack = m(); }
+        typeof define === "function" ? function (m) {
+    define("msgpack-js", m);
+} :
+        typeof exports === "object" ? function (m) {
+    module.exports = m();
+} :
+    function (m) {
+        this.msgpack = m();
+    }
     )(function () {
     "use strict";
 
@@ -38,7 +44,7 @@
     exports.utf8Write = utf8Write;
     function utf8Write(view, offset, string) {
         var byteLength = view.byteLength;
-        for(var i = 0, l = string.length; i < l; i++) {
+        for (var i = 0, l = string.length; i < l; i++) {
             var codePoint = string.charCodeAt(i);
 
             // One byte of UTF-8
@@ -57,8 +63,8 @@
             // Three bytes of UTF-8.
             if (codePoint < 0x10000) {
                 view.setUint8(offset++, codePoint >>> 12 & 0x0f | 0xe0);
-                view.setUint8(offset++, codePoint >>> 6  & 0x3f | 0x80);
-                view.setUint8(offset++, codePoint >>> 0  & 0x3f | 0x80);
+                view.setUint8(offset++, codePoint >>> 6 & 0x3f | 0x80);
+                view.setUint8(offset++, codePoint >>> 0 & 0x3f | 0x80);
                 continue;
             }
 
@@ -66,8 +72,8 @@
             if (codePoint < 0x110000) {
                 view.setUint8(offset++, codePoint >>> 18 & 0x07 | 0xf0);
                 view.setUint8(offset++, codePoint >>> 12 & 0x3f | 0x80);
-                view.setUint8(offset++, codePoint >>> 6  & 0x3f | 0x80);
-                view.setUint8(offset++, codePoint >>> 0  & 0x3f | 0x80);
+                view.setUint8(offset++, codePoint >>> 6 & 0x3f | 0x80);
+                view.setUint8(offset++, codePoint >>> 0 & 0x3f | 0x80);
                 continue;
             }
             throw new Error("bad codepoint " + codePoint);
@@ -119,7 +125,7 @@
     exports.utf8ByteCount = utf8ByteCount;
     function utf8ByteCount(string) {
         var count = 0;
-        for(var i = 0, l = string.length; i < l; i++) {
+        for (var i = 0, l = string.length; i < l; i++) {
             var codePoint = string.charCodeAt(i);
             if (codePoint < 0x80) {
                 count += 1;
@@ -164,6 +170,7 @@
         this.offset = offset || 0;
         this.view = view;
     }
+
     Decoder.prototype.map = function (length) {
         var value = {};
         for (var i = 0; i < length; i++) {
@@ -385,7 +392,7 @@
             }
 
             // Integers
-            if (value >=0) {
+            if (value >= 0) {
                 // positive fixnum
                 if (value < 0x80) {
                     view.setUint8(offset, value);
@@ -535,7 +542,7 @@
             if (value << 0 !== value) return 9;
 
             // Integers
-            if (value >=0) {
+            if (value >= 0) {
                 // positive fixnum
                 if (value < 0x80) return 1;
                 // uint 8
