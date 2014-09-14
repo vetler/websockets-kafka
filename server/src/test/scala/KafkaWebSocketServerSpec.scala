@@ -16,16 +16,19 @@ class KafkaWebSocketServerSpec extends FlatSpec with Matchers with EasyMockSugar
     val map = Map(
       "command" -> "init",
       "groupId" -> "testing-group-id",
-      "topic" -> "testing-topic")
+      "topics" -> List("testing-topic1", "testing-topic2").asJava)
 
     val message = msgPack.write(map.asJava)
     val conn = mock[WebSocket]
 
     val server = new KafkaWebSocketServer(new InetSocketAddress(9999))
-    server.consumers.isEmpty should be (true)
+    server.consumers.isEmpty should be(true)
 
     server.onMessage(conn, ByteBuffer.wrap(message))
-    server.consumers.size should be (1)
+    server.consumers.size should be(1)
+
+    val (_, consumer) = server.consumers.head
+    //consumer.topics should be(List("testing-topic1", "testing-topic2"))
   }
 
 }

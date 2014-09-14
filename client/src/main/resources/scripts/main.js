@@ -12,7 +12,7 @@ connection.onopen = function () {
     connection.send(
         msgpack.encode({command: "init",
             groupId: makeid(),
-            topic: "testing-topic"}))
+            topics: ["testing-topic1", "testing-topic2"]}))
 }
 
 // Source: http://stackoverflow.com/questions/1349404/generate-a-string-of-5-random-characters-in-javascript

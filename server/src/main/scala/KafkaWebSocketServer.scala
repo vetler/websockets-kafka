@@ -1,7 +1,7 @@
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 
-import MsgPack.valueToString
+import MsgPack._
 import com.typesafe.scalalogging.slf4j.LazyLogging
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
@@ -9,7 +9,7 @@ import org.java_websocket.{WebSocket, WebSocketImpl}
 import org.msgpack.`type`.RawValue
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.future
+import scala.concurrent.Future
 
 /**
  * Websocket server for redirecting Apache Kafka events to websocket clients.
@@ -18,15 +18,15 @@ import scala.concurrent.future
  */
 class KafkaWebSocketServer(port: InetSocketAddress) extends WebSocketServer(port) with LazyLogging {
 
-  var consumers = Map[WebSocket, ConsumeBridge]()
+  var consumers = Map[WebSocket, ConsumerBridge]()
 
   override def onOpen(conn: WebSocket, handshake: ClientHandshake) {
     logger.debug(s"New connection established: ${conn.getRemoteSocketAddress}")
   }
 
   def initialize(socket: WebSocket, message: MsgPack): Unit = {
-    val webSocketConsumer = new ConsumeBridge(message.get("groupId"), message.get("topic"), socket)
-    future {
+    val webSocketConsumer = new ConsumerBridge(message.get("groupId"), message.get("topics"), socket)
+    Future {
       webSocketConsumer.run
     }
     consumers = consumers + (socket -> webSocketConsumer)
@@ -62,4 +62,5 @@ object KafkaWebSocketServer {
     WebSocketImpl.DEBUG = true;
     new KafkaWebSocketServer(new InetSocketAddress(9003)).start();
   }
+
 }
