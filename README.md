@@ -1,5 +1,4 @@
 [![Build Status](https://drone.io/github.com/vetler/websockets-kafka/status.png)](https://drone.io/github.com/vetler/websockets-kafka/latest)
-
 websockets-kafka
 ====================
 
